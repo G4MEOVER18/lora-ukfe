@@ -162,9 +162,31 @@ Der passende Heltec ESP32 LoRa v3 Agent ist Teil des **G4MEOVER UKFE**-Projekts:
 
 ---
 
+## Companion: G4MEOVER-FW
+
+Diese App ist für die **[G4MEOVER-FW](https://github.com/G4MEOVER18/G4MEOVER-FW)** Custom Firmware optimiert, läuft aber auch auf Momentum mntm-012.
+
+| Repo | Inhalt |
+|---|---|
+| [G4MEOVER-FW](https://github.com/G4MEOVER18/G4MEOVER-FW) | Custom Flipper Zero Firmware (Basis dieser App) |
+| [lora-ukfe](https://github.com/G4MEOVER18/lora-ukfe) | Diese App (Flipper FAP) |
+
+---
+
 ## Rechtlicher Hinweis
 
 Dieses Tool ist ausschließlich für **autorisierte Sicherheitstests, CTF-Wettbewerbe und Security Research** bestimmt. Die Nutzung gegen Systeme oder Netzwerke ohne ausdrückliche Genehmigung ist illegal. Der Autor übernimmt keine Haftung für Missbrauch.
+
+---
+
+## Support
+
+[![PayPal](https://img.shields.io/badge/PayPal-Spenden-0070ba?style=flat-square&logo=paypal)](https://paypal.me/Freakbank1)
+[![Bitcoin](https://img.shields.io/badge/BTC-39vZWmnUwDReQ15BwqQXzyqVQ6U8LardEf-f7931a?style=flat-square&logo=bitcoin)](bitcoin:39vZWmnUwDReQ15BwqQXzyqVQ6U8LardEf)
+
+```
+BTC: 39vZWmnUwDReQ15BwqQXzyqVQ6U8LardEf
+```
 
 ---
 
