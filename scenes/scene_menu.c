@@ -1,0 +1,77 @@
+#include "../lora_ukfe.h"
+#include "scenes.h"
+
+typedef enum {
+    MenuItemStatus = 0,
+    MenuItemTrigger,
+    MenuItemPayloads,
+    MenuItemLoRaScan,
+    MenuItemWiFiScan,
+    MenuItemLog,
+    MenuItemSettings,
+} MenuItems;
+
+static void menu_callback(void* ctx, uint32_t index) {
+    LораUkfeApp* app = ctx;
+    switch((MenuItems)index) {
+    case MenuItemStatus:
+        scene_manager_next_scene(app->scene_manager, UkfeSceneStatus);
+        break;
+    case MenuItemTrigger:
+        scene_manager_next_scene(app->scene_manager, UkfeScenePayloadList);
+        break;
+    case MenuItemPayloads:
+        scene_manager_next_scene(app->scene_manager, UkfeScenePayloadList);
+        break;
+    case MenuItemLoRaScan:
+        ukfe_uart_send_lora_scan(app);
+        scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
+        break;
+    case MenuItemWiFiScan:
+        ukfe_uart_send_wifi_scan(app);
+        scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
+        break;
+    case MenuItemLog:
+        scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
+        break;
+    case MenuItemSettings:
+        scene_manager_next_scene(app->scene_manager, UkfeSceneSettings);
+        break;
+    }
+}
+
+void scene_menu_on_enter(void* ctx) {
+    LораUkfeApp* app = ctx;
+
+    static const char* mode_names[] = {"LoRa (Heltec)", "WiFi (T-Dongle)", "SubGHz OOK", "Direkt"};
+    const char* mode = (app->mode < UkfeModeCount) ? mode_names[app->mode] : "?";
+
+    submenu_reset(app->submenu);
+
+    // Titelzeile zeigt aktuellen Modus
+    char title[32];
+    snprintf(title, sizeof(title), "UKFE — %s", mode);
+    submenu_set_header(app->submenu, title);
+
+    submenu_add_item(app->submenu, "Status",       MenuItemStatus,   menu_callback, app);
+    submenu_add_item(app->submenu, "Trigger",      MenuItemTrigger,  menu_callback, app);
+    submenu_add_item(app->submenu, "Payloads",     MenuItemPayloads, menu_callback, app);
+    submenu_add_item(app->submenu, "LoRa Scan",    MenuItemLoRaScan, menu_callback, app);
+    submenu_add_item(app->submenu, "WiFi Scan",    MenuItemWiFiScan, menu_callback, app);
+    submenu_add_item(app->submenu, "Log",          MenuItemLog,      menu_callback, app);
+    submenu_add_item(app->submenu, "Einstellungen",MenuItemSettings, menu_callback, app);
+
+    view_dispatcher_switch_to_view(app->view_dispatcher, UkfeViewMenu);
+    ukfe_uart_send_status(app);
+}
+
+bool scene_menu_on_event(void* ctx, SceneManagerEvent event) {
+    UNUSED(ctx);
+    UNUSED(event);
+    return false;
+}
+
+void scene_menu_on_exit(void* ctx) {
+    LораUkfeApp* app = ctx;
+    submenu_reset(app->submenu);
+}

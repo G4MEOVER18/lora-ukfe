@@ -1,0 +1,13 @@
+App(
+    appid="lora_ukfe",
+    name="USB Army Knife FE",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="lora_ukfe_app",
+    requires=["gui"],
+    stack_size=4 * 1024,
+    fap_category="GPIO",
+    fap_version=(1, 0),
+    fap_description="USB Army Knife Flipper Edition — LoRa/WiFi/SubGHz Remote Control",
+    fap_author="G4MEOVER (GamingNode + CyberNode)",
+    fap_weburl="",
+)
