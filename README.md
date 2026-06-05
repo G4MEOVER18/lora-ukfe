@@ -1,6 +1,6 @@
-# lora_ukfe — USB Army Knife Flipper Edition
+# lora_ukfe — USB Army Penetrator Flipper Edition
 
-> Flipper Zero FAP · Remote-Steuerung für den Heltec ESP32 LoRa v3 Agent via UART/JSON
+> Flipper Zero FAP · Remote-Steuerung für den G4MEOVER Agent via UART/JSON
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![API](https://img.shields.io/badge/Flipper%20API-87.1-orange)
@@ -10,23 +10,52 @@
 
 ---
 
+```
+ ██████╗ ██╗  ██╗███╗   ███╗███████╗ ██████╗ ██╗   ██╗███████╗██████╗
+██╔════╝ ██║  ██║████╗ ████║██╔════╝██╔═══██╗██║   ██║██╔════╝██╔══██╗
+██║  ███╗███████║██╔████╔██║█████╗  ██║   ██║██║   ██║█████╗  ██████╔╝
+██║   ██║╚════██║██║╚██╔╝██║██╔══╝  ██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗
+╚██████╔╝     ██║██║ ╚═╝ ██║███████╗╚██████╔╝ ╚████╔╝ ███████╗██║  ██║
+ ╚═════╝      ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝
+                  USB Army Penetrator Flipper Edition
+```
+
+---
+
 ## Übersicht
 
-`lora_ukfe` ist eine Flipper Zero App (`.fap`), die als Fernbedienung für den **USB Army Knife Flipper Edition (UKFE)** Agenten auf einem Heltec ESP32 LoRa v3 dient. Die Kommunikation erfolgt über UART (115200 Baud) mit einem JSON-Protokoll.
+`lora_ukfe` ist eine Flipper Zero App (`.fap`), die als Fernbedienung für den **USB Army Penetrator** Agenten dient. Kommunikation über UART (115200 Baud) mit JSON-Protokoll.
+
+### Unterstützte Hardware (Agent-Seite)
+
+| Gerät | Firmware | Status |
+|---|---|---|
+| **Heltec ESP32 LoRa v3** | [G4MEOVER LoRa Agent v1.0](https://github.com/G4MEOVER18/lora-ukfe/releases) | ✅ Vollständig |
+| **LilyGo T-Dongle S3** | G4MEOVER Agent (in Vorbereitung) | 🔧 Bald |
+| **ESP32 CYD** | G4MEOVER Agent (in Vorbereitung) | 🔧 Bald |
+
+> **Nur G4MEOVER-Firmware wird unterstützt.** Original-Firmware, radioFritz oder andere Drittanbieter-Firmware sind nicht kompatibel.
+
+### Flipper-Firmware-Kompatibilität
+
+| Firmware | Status |
+|---|---|
+| G4MEOVER-FW v1.0.0 | ✅ Getestet |
+| Momentum mntm-012 | ✅ Kompatibel |
 
 ### Features
 
 | Funktion | Beschreibung |
 |---|---|
-| **Status** | Live-Status vom Heltec Agent (State, RSSI, WiFi-Clients, Battery) |
+| **Status** | Live-Status vom Agent (State, RSSI, WiFi-Clients, Battery) |
 | **Trigger** | BadUSB/HID-Payloads remote auslösen (mit optionalem Delay) |
-| **Payload-Liste** | Alle auf dem Heltec gespeicherten Payloads anzeigen |
+| **Payload-Liste** | Alle auf dem Agent gespeicherten Payloads anzeigen |
 | **LoRa Scan** | Umgebungs-Scan auf 868 MHz EU-Band |
 | **WiFi Scan** | SSID-Scan über ESP32 WiFi |
 | **WiFi Deauth** | Deauth-Frame-Sender (nur für autorisierte Pentests) |
 | **Evil Portal** | Captive Portal starten/stoppen |
 | **ABORT** | Sofortabbruch aller laufenden Aktionen |
-| **Log** | JSON-Echtzeit-Log der Heltec-Kommunikation |
+| **Log** | JSON-Echtzeit-Log der Agent-Kommunikation |
 | **Einstellungen** | Modus (LoRa / WiFi / SubGHz / Direct), Baud-Rate |
 
 ---
@@ -50,7 +79,7 @@ Flipper Zero                         Heltec ESP32 LoRa v3
 └─────────────────────────────┘
 ```
 
-**UART-Pinout (Flipper → Heltec):**
+**UART-Pinout (Flipper → Heltec ESP32 LoRa v3):**
 
 | Flipper Pin | Heltec Pin | Signal |
 |---|---|---|
@@ -62,7 +91,7 @@ Flipper Zero                         Heltec ESP32 LoRa v3
 
 ## UART JSON-Protokoll
 
-### Commands (Flipper → Heltec)
+### Commands (Flipper → Agent)
 
 ```json
 {"cmd":"status"}
@@ -76,7 +105,7 @@ Flipper Zero                         Heltec ESP32 LoRa v3
 {"cmd":"abort"}
 ```
 
-### Events (Heltec → Flipper)
+### Events (Agent → Flipper)
 
 ```json
 {"event":"status","state":"idle","lora_rssi":-85,"wifi_clients":0,"bat_pct":87,"fw":"1.0","payload_count":3}
@@ -91,91 +120,70 @@ Flipper Zero                         Heltec ESP32 LoRa v3
 
 ```
 lora_ukfe/
-├── application.fam          # FAP-Manifest (appid, name, version, category)
+├── application.fam          # FAP-Manifest
 ├── lora_ukfe.h              # App-State, Typen, Konstanten
 ├── lora_ukfe.c              # Entry Point, Log-Buffer, Event-Dispatcher
 ├── uart_comm.c              # UART-Init, RX-Thread, JSON-Sender
-├── json_parse.c             # JSON-Event-Parser (status, payloads, log)
+├── json_parse.c             # JSON-Event-Parser
 ├── images/
 │   └── g4meover_icon10.h   # FAP-Icon (10x10 XBM)
 └── scenes/
-    ├── scenes.h             # Scene-Enum + Handler-Deklarationen
-    ├── scene_handlers.c     # on_enter/on_event/on_exit für alle Scenes
     ├── scene_menu.c         # Hauptmenü (10 Einträge)
     ├── scene_status.c       # Live-Status-Anzeige
-    ├── scene_mode_menu.c    # Modus-Auswahl
     ├── scene_payload_list.c # Payload-Auswahl + Trigger
     ├── scene_log.c          # JSON-Echtzeit-Log
-    └── scene_settings.c     # Einstellungen (Modus, Baud)
+    └── scene_settings.c     # Einstellungen
 ```
 
 ---
 
 ## Build
 
-### Voraussetzungen
-
-- [ufbt](https://github.com/flipperdevices/flipperzero-ufbt) installiert
-- G4MEOVER-FW oder kompatible Firmware (API 87.1, mntm-012)
-
-### Kompilieren
-
 ```bash
-# Im Repo-Verzeichnis:
+# Im Repo-Verzeichnis (API 87.1 / mntm-012 SDK):
 ufbt
 
-# Ausgabe: build/lora_ukfe.fap (16.984 Bytes)
-```
-
-### Auf Flipper deployen
-
-```bash
-# Direkt per USB:
+# Direkt deployen:
 ufbt launch
-
-# Oder manuell:
-# .fap kopieren nach: SD:/apps/GPIO/lora_ukfe.fap
 ```
 
 ---
 
-## Kompatibilität
+## Agent-Firmware (Heltec ESP32 LoRa v3)
 
-| Firmware | Status |
+Die G4MEOVER Firmware für den Heltec ESP32 LoRa v3 ist Teil dieses Repos:
+
+- **Releases:** [github.com/G4MEOVER18/lora-ukfe/releases](https://github.com/G4MEOVER18/lora-ukfe/releases)
+- Datei: `G4MEOVER-LoRa-Agent-v1.0.bin`
+- Flashen: `esptool.py --chip esp32s3 write_flash 0x0 G4MEOVER-LoRa-Agent-v1.0.bin`
+
+**Module des Agents:**
+
+| Modul | Funktion |
 |---|---|
-| G4MEOVER-FW v1.0.0 | ✅ Getestet |
-| Momentum mntm-012 | ✅ Kompatibel (gleiche API) |
-| Unleashed / OFW | ⚠️ Nicht getestet |
+| `uart_bridge.cpp` | JSON-Command-Parser |
+| `lora_agent.cpp` | LoRa TX/RX, Channel-Scan |
+| `wifi_suite.cpp` | Scan, Deauth, Evil Portal, Beacon Spam |
+| `hid_engine.cpp` | BadUSB/HID-Payload-Engine |
+| `payload_store.cpp` | Payload-Verwaltung (SPIFFS) |
+| `oled_ui.cpp` | OLED-Status-Display |
 
 ---
 
-## Heltec Agent
+## Verwandte Projekte
 
-Der passende Heltec ESP32 LoRa v3 Agent ist Teil des **G4MEOVER UKFE**-Projekts:
-
-- `uart_bridge.cpp` — JSON-Command-Parser
-- `lora_agent.cpp` — LoRa TX/RX, Channel-Scan
-- `wifi_suite.cpp` — Scan, Deauth, Evil Portal, Beacon Spam
-- `hid_engine.cpp` — BadUSB/HID-Payload-Engine
-- `payload_store.cpp` — Payload-Verwaltung (SPIFFS)
-- `oled_ui.cpp` — OLED-Status-Display
-
----
-
-## Companion: G4MEOVER-FW
-
-Diese App ist für die **[G4MEOVER-FW](https://github.com/G4MEOVER18/G4MEOVER-FW)** Custom Firmware optimiert, läuft aber auch auf Momentum mntm-012.
-
-| Repo | Inhalt |
+| Projekt | Beschreibung |
 |---|---|
-| [G4MEOVER-FW](https://github.com/G4MEOVER18/G4MEOVER-FW) | Custom Flipper Zero Firmware (Basis dieser App) |
-| [lora-ukfe](https://github.com/G4MEOVER18/lora-ukfe) | Diese App (Flipper FAP) |
+| [G4MEOVER-FW](https://github.com/G4MEOVER18/G4MEOVER-FW) | Custom Flipper Zero Firmware |
+| [ProtoPirate](https://github.com/G4MEOVER18/ProtoPirate) | Car Keyfob RF Decoder/Emulator (27+ Protokolle) |
+| [RollJam](https://github.com/G4MEOVER18/RollJam) | RollJam Attack PoC (Jam + Capture + Replay) |
+| [RollLab](https://github.com/G4MEOVER18/RollLab) | Rolling Code Vulnerability Lab |
 
 ---
 
 ## Rechtlicher Hinweis
 
-Dieses Tool ist ausschließlich für **autorisierte Sicherheitstests, CTF-Wettbewerbe und Security Research** bestimmt. Die Nutzung gegen Systeme oder Netzwerke ohne ausdrückliche Genehmigung ist illegal. Der Autor übernimmt keine Haftung für Missbrauch.
+Dieses Tool ist ausschließlich für **autorisierte Sicherheitstests, CTF-Wettbewerbe und Security Research** an eigener Hardware bestimmt. Die Nutzung gegen Systeme ohne Genehmigung ist illegal.
 
 ---
 
