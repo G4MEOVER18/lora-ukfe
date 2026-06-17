@@ -5,3 +5,6 @@ dist/
 __pycache__/
 *.swp
 *.swo
+.vscode/
+*.fap
+ufbt_build.log
