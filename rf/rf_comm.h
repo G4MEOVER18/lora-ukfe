@@ -12,5 +12,9 @@ void rf_comm_deinit(void);
 // true wenn TX komplett angestossen.
 bool rf_comm_send(const UkfeRfMessage* msg);
 
+// Baut nur einen ukfe_rf-Frame (Secret + geteilter Rolling-Counter), OHNE Funk-HW —
+// fuer den UART/WROOM-Transport. Rueckgabe: Framelaenge in out, 0 bei Fehler.
+size_t rf_comm_build_frame(const UkfeRfMessage* msg, uint8_t* out, size_t cap);
+
 // Aktuellen Counter-Stand lesen (fuer Anzeige/Persistenz).
 uint32_t rf_comm_counter(void);

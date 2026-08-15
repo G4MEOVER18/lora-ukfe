@@ -11,6 +11,7 @@
 #include <furi_hal_serial.h>
 #include <furi_hal_serial_control.h>
 #include <notification/notification_messages.h>
+#include "rf/ukfe_rf.h"
 
 // ─── Protokoll ────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ void ukfe_uart_send_payload_list(LораUkfeApp* app);
 void ukfe_uart_send_abort(LораUkfeApp* app);
 void ukfe_uart_send_lora_scan(LораUkfeApp* app);
 void ukfe_uart_send_wifi_scan(LораUkfeApp* app);
+void ukfe_uart_send_rf(LораUkfeApp* app, const UkfeRfMessage* msg);
 
 // json_parse.c
 void ukfe_json_handle(LораUkfeApp* app, const char* json);
