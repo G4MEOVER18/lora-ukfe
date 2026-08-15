@@ -77,13 +77,21 @@ void rf_comm_deinit(void) {
     s_rf.inited = false;
 }
 
-bool rf_comm_send(const UkfeRfMessage* in) {
-    if(!s_rf.inited || !in) return false;
+// Baut einen ukfe_rf-Frame mit gemeinsamem Secret + geteiltem Rolling-Counter,
+// ohne die Funk-Hardware zu benoetigen. Auch fuer den UART/WROOM-Transport genutzt,
+// damit alle Transporte denselben Counter-Raum teilen (global monoton).
+size_t rf_comm_build_frame(const UkfeRfMessage* in, uint8_t* out, size_t cap) {
+    if(!in || !out) return 0;
     UkfeRfMessage msg = *in;
     msg.counter = ++s_rf.counter;   // Rolling-Counter
+    return ukfe_rf_build_frame(RF_SECRET, &msg, out, cap);
+}
+
+bool rf_comm_send(const UkfeRfMessage* in) {
+    if(!s_rf.inited || !in) return false;
 
     uint8_t frame[UKFE_RF_MAX_FRAME];
-    size_t n = ukfe_rf_build_frame(RF_SECRET, &msg, frame, sizeof(frame));
+    size_t n = rf_comm_build_frame(in, frame, sizeof(frame));
     if(n == 0) return false;
 
     encode_frame(&s_rf, frame, n);

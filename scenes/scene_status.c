@@ -12,7 +12,7 @@ static void refresh_display(LораUkfeApp* app) {
         "Bat:    %d%%\n"
         "FW:     %s\n"
         "Paylds: %d",
-        (const char*[]){"LoRa","WiFi","SubGHz","Direkt"}[app->mode],
+        (const char*[]){"LoRa (Heltec)","WiFi (T-Dongle)","SubGHz OOK","Direkt"}[app->mode],
         app->status.state,
         app->status.lora_rssi,
         app->status.wifi_clients,

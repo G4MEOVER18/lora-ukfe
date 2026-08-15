@@ -1,6 +1,8 @@
 #include "lora_ukfe.h"
+#include "rf/rf_comm.h"
 #include <string.h>
 #include <stdio.h>
+#include <expansion/expansion.h>
 
 // ─── RX-Thread ────────────────────────────────────────────────────────────────
 
@@ -44,6 +46,12 @@ bool ukfe_uart_init(LораUkfeApp* app) {
     app->rx_stream = furi_stream_buffer_alloc(UKFE_RX_BUF_SIZE, 1);
     if(!app->rx_stream) return false;
 
+    // Expansion-Dienst abschalten — er belegt sonst die USART (Pin 13/14), dann
+    // scheitert der Acquire und "NET:" sendet still nichts (haeufigste Ursache).
+    Expansion* exp = furi_record_open(RECORD_EXPANSION);
+    expansion_disable(exp);
+    furi_record_close(RECORD_EXPANSION);
+
     app->serial = furi_hal_serial_control_acquire(UKFE_UART_ID);
     if(!app->serial) {
         furi_stream_buffer_free(app->rx_stream);
@@ -76,6 +84,11 @@ void ukfe_uart_deinit(LораUkfeApp* app) {
         furi_stream_buffer_free(app->rx_stream);
         app->rx_stream = NULL;
     }
+
+    // Expansion-Dienst wieder aktivieren (Normalzustand des Flippers).
+    Expansion* exp = furi_record_open(RECORD_EXPANSION);
+    expansion_enable(exp);
+    furi_record_close(RECORD_EXPANSION);
 }
 
 // ─── Senden ───────────────────────────────────────────────────────────────────
@@ -119,4 +132,18 @@ void ukfe_uart_send_lora_scan(LораUkfeApp* app) {
 
 void ukfe_uart_send_wifi_scan(LораUkfeApp* app) {
     ukfe_uart_send_cmd(app, "{\"cmd\":\"wifi_scan\"}");
+}
+
+// Sendet einen ukfe_rf-Binaerframe ueber die GPIO-UART (Pin 13/14) an den
+// WROOM-Relay, der ihn per ESP-NOW an die Satelliten weiterreicht. Gleiches
+// Frame-Format wie der 868-Funk -> Satelliten validieren beide Transporte gleich.
+void ukfe_uart_send_rf(LораUkfeApp* app, const UkfeRfMessage* m) {
+    if(!app->serial || !m) return;
+    uint8_t frame[UKFE_RF_MAX_FRAME];
+    size_t n = rf_comm_build_frame(m, frame, sizeof(frame));
+    if(n == 0) return;
+    furi_hal_serial_tx(app->serial, frame, n);
+    char note[40];
+    snprintf(note, sizeof(note), "[UART->WROOM] cmd=0x%02X (%u B)", m->cmd, (unsigned)n);
+    ukfe_log_append(app, note);
 }

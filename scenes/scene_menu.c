@@ -9,8 +9,17 @@ typedef enum {
     MenuItemLoRaScan,
     MenuItemWiFiScan,
     MenuItemRfPing,
-    MenuItemRfHid0,
-    MenuItemRfHid1,
+    MenuItemRfPl0,
+    MenuItemRfPl1,
+    MenuItemRfPl2,
+    MenuItemRfPl3,
+    MenuItemRfPl4,
+    MenuItemNetPing,
+    MenuItemNetPl0,
+    MenuItemNetPl1,
+    MenuItemNetPl2,
+    MenuItemNetPl3,
+    MenuItemNetPl4,
     MenuItemLog,
     MenuItemSettings,
 } MenuItems;
@@ -42,17 +51,38 @@ static void menu_callback(void* ctx, uint32_t index) {
         scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
         break;
     }
-    case MenuItemRfHid0: {
+    case MenuItemRfPl0:
+    case MenuItemRfPl1:
+    case MenuItemRfPl2:
+    case MenuItemRfPl3:
+    case MenuItemRfPl4: {
+        // id 0..4 -> Heltec UkfeRfControl-Tabelle:
+        // 0 wifi_scan_ap · 1 wifi_deauth_all · 2 ble_spam_all · 3 wifi_evil_portal · 4 wifi_wardrive
+        uint8_t id = (uint8_t)(index - MenuItemRfPl0);
         UkfeRfMessage m;
-        ukfe_rf_make_trigger(&m, 0, 0);   // id=0 -> Heltec hid_payload(0): Marker-Test
+        ukfe_rf_make_trigger(&m, id, 0);
         if(rf_comm_init()) rf_comm_send(&m);
         scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
         break;
     }
-    case MenuItemRfHid1: {
+    case MenuItemNetPing: {
+        // Status-Ping ueber GPIO-UART an den WROOM-Relay (-> ESP-NOW an Satelliten)
         UkfeRfMessage m;
-        ukfe_rf_make_trigger(&m, 1, 0);   // id=1 -> Heltec hid_payload(1): Win+R
-        if(rf_comm_init()) rf_comm_send(&m);
+        ukfe_rf_make_simple(&m, UkfeRfCmdStatus);
+        ukfe_uart_send_rf(app, &m);
+        scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
+        break;
+    }
+    case MenuItemNetPl0:
+    case MenuItemNetPl1:
+    case MenuItemNetPl2:
+    case MenuItemNetPl3:
+    case MenuItemNetPl4: {
+        // gleiche id-Tabelle wie RF, aber Transport = UART -> WROOM -> ESP-NOW
+        uint8_t id = (uint8_t)(index - MenuItemNetPl0);
+        UkfeRfMessage m;
+        ukfe_rf_make_trigger(&m, id, 0);
+        ukfe_uart_send_rf(app, &m);
         scene_manager_next_scene(app->scene_manager, UkfeSceneLog);
         break;
     }
@@ -68,29 +98,26 @@ static void menu_callback(void* ctx, uint32_t index) {
 void scene_menu_on_enter(void* ctx) {
     LораUkfeApp* app = ctx;
 
-    static const char* mode_names[] = {"LoRa (Heltec)", "WiFi (T-Dongle)", "SubGHz OOK", "Direkt"};
-    const char* mode = (app->mode < UkfeModeCount) ? mode_names[app->mode] : "?";
-
     submenu_reset(app->submenu);
+    submenu_set_header(app->submenu, "G4MEOVER UKFE");
 
-    // Titelzeile zeigt aktuellen Modus
-    char title[32];
-    snprintf(title, sizeof(title), "UKFE — %s", mode);
-    submenu_set_header(app->submenu, title);
-
-    submenu_add_item(app->submenu, "Status",       MenuItemStatus,   menu_callback, app);
-    submenu_add_item(app->submenu, "Trigger",      MenuItemTrigger,  menu_callback, app);
-    submenu_add_item(app->submenu, "Payloads",     MenuItemPayloads, menu_callback, app);
-    submenu_add_item(app->submenu, "LoRa Scan",    MenuItemLoRaScan, menu_callback, app);
-    submenu_add_item(app->submenu, "WiFi Scan",    MenuItemWiFiScan, menu_callback, app);
+    // --- 868-FSK: Flipper-CC1101 direkt zum Heltec ---
     submenu_add_item(app->submenu, "RF: Status-Ping (868)", MenuItemRfPing, menu_callback, app);
-    submenu_add_item(app->submenu, "RF: HID Marker (868)",  MenuItemRfHid0, menu_callback, app);
-    submenu_add_item(app->submenu, "RF: HID Win+R (868)",   MenuItemRfHid1, menu_callback, app);
+    submenu_add_item(app->submenu, "RF: WiFi Scan (868)",   MenuItemRfPl0, menu_callback, app);
+    submenu_add_item(app->submenu, "RF: WiFi Deauth (868)", MenuItemRfPl1, menu_callback, app);
+    submenu_add_item(app->submenu, "RF: BLE Spam (868)",    MenuItemRfPl2, menu_callback, app);
+    submenu_add_item(app->submenu, "RF: Evil Portal (868)", MenuItemRfPl3, menu_callback, app);
+    submenu_add_item(app->submenu, "RF: Wardrive (868)",    MenuItemRfPl4, menu_callback, app);
+    // --- NET: ueber GPIO-UART an den WROOM-Relay -> ESP-NOW an alle Satelliten ---
+    submenu_add_item(app->submenu, "NET: Status-Ping (WROOM)", MenuItemNetPing, menu_callback, app);
+    submenu_add_item(app->submenu, "NET: WiFi Scan (WROOM)",   MenuItemNetPl0, menu_callback, app);
+    submenu_add_item(app->submenu, "NET: WiFi Deauth (WROOM)", MenuItemNetPl1, menu_callback, app);
+    submenu_add_item(app->submenu, "NET: BLE Spam (WROOM)",    MenuItemNetPl2, menu_callback, app);
+    submenu_add_item(app->submenu, "NET: Evil Portal (WROOM)", MenuItemNetPl3, menu_callback, app);
+    submenu_add_item(app->submenu, "NET: Wardrive (WROOM)",    MenuItemNetPl4, menu_callback, app);
     submenu_add_item(app->submenu, "Log",          MenuItemLog,      menu_callback, app);
-    submenu_add_item(app->submenu, "Einstellungen",MenuItemSettings, menu_callback, app);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, UkfeViewMenu);
-    ukfe_uart_send_status(app);
 }
 
 bool scene_menu_on_event(void* ctx, SceneManagerEvent event) {
