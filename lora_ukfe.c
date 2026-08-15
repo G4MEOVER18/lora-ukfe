@@ -129,7 +129,7 @@ int32_t lora_ukfe_app(void* p) {
     }
 
     // Startbildschirm: Modus-Auswahl
-    scene_manager_next_scene(app->scene_manager, UkfeSceneModeMenu);
+    scene_manager_next_scene(app->scene_manager, UkfeSceneMenu);
     view_dispatcher_run(app->view_dispatcher);
 
     app_free(app);
