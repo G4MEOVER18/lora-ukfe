@@ -20,57 +20,60 @@ typedef struct {
     uint8_t     count;
 } UkfeCat;
 
-// -- WiFi (GhostESP/Marauder/Biscuit-Klasse) --
+// Geraete-Label im Namen: [V4]=Basis-Executor, [V4+V3]=V4 fuehrt aus + Satellit V3,
+// [V4 GPS]=braucht V4-GPS, [HID]=HID-Geraet (V4/V3). Alles laeuft ueber V4 (UART).
+
+// -- WiFi (Marauder-Klasse) — V4 fuehrt aus, relayed an V3 --
 static const UkfeFn FN_WIFI[] = {
-    {"AP-Scan",         UkfeRfCmdWifiScan,    0, false},
-    {"Deauth (alle)",   UkfeRfCmdWifiDeauth,  0, false},
-    {"Evil Portal",     UkfeRfCmdEvilPortal,  0, false},
-    {"Beacon Spam",     UkfeRfCmdBeaconSpam,  0, true},
-    {"Handshake",       UkfeRfCmdHandshake,   0, false},
-    {"Wardrive + GPS",  UkfeRfCmdWardrive,    0, false},
-    {"Probe Sniff",     UkfeRfCmdProbeSniff,  0, false},
-    {"Karma",           UkfeRfCmdKarma,       0, false},
-    {"Packet Monitor",  UkfeRfCmdPacketMon,   0, false},
-    {"Pwnagotchi",      UkfeRfCmdPwnagotchi,  0, false},
-    {"Stop",            UkfeRfCmdWifiStop,    0, false},
+    {"AP-Scan [V4+V3]",       UkfeRfCmdWifiScan,    0, false},
+    {"Deauth alle [V4+V3]",   UkfeRfCmdWifiDeauth,  0, false},
+    {"Evil Twin [V4+V3]",     UkfeRfCmdEvilPortal,  0, false},
+    {"Beacon Spam [V4+V3]",   UkfeRfCmdBeaconSpam,  0, true},
+    {"Handshake [V4+V3]",     UkfeRfCmdHandshake,   0, false},
+    {"Wardrive+GPS [V4]",     UkfeRfCmdWardrive,    0, false},
+    {"Probe Sniff [V4+V3]",   UkfeRfCmdProbeSniff,  0, false},
+    {"Karma [V4+V3]",         UkfeRfCmdKarma,       0, false},
+    {"Packet Mon [V4+V3]",    UkfeRfCmdPacketMon,   0, false},
+    {"Pwnagotchi [V4+V3]",    UkfeRfCmdPwnagotchi,  0, false},
+    {"Stop [V4+V3]",          UkfeRfCmdWifiStop,    0, false},
 };
 
-// -- Bluetooth / BLE --
+// -- Bluetooth / BLE — V4 fuehrt aus, relayed an V3 --
 static const UkfeFn FN_BLE[] = {
-    {"BLE-Scan",         UkfeRfCmdBleScan,   0, false},
-    {"BLE Spam Apple",   UkfeRfCmdBleSpam,   0, true},
-    {"BLE Spam Android", UkfeRfCmdBleSpam,   1, true},
-    {"BLE Spam Samsung", UkfeRfCmdBleSpam,   2, true},
-    {"BLE Spam Windows", UkfeRfCmdBleSpam,   3, true},
-    {"Sour Apple",       UkfeRfCmdSourApple, 0, false},
-    {"BLE Sniff",        UkfeRfCmdBleSniff,  0, false},
+    {"BLE-Scan [V4+V3]",       UkfeRfCmdBleScan,   0, false},
+    {"BLE Spam Apple [V4+V3]", UkfeRfCmdBleSpam,   0, true},
+    {"BLE Spam Android [V4+V3]",UkfeRfCmdBleSpam,  1, true},
+    {"BLE Spam Samsung [V4+V3]",UkfeRfCmdBleSpam,  2, true},
+    {"BLE Spam Win [V4+V3]",   UkfeRfCmdBleSpam,   3, true},
+    {"Sour Apple [V4+V3]",     UkfeRfCmdSourApple, 0, false},
+    {"BLE Sniff [V4+V3]",      UkfeRfCmdBleSniff,  0, false},
 };
 
-// -- SubGHz / LoRa --
+// -- SubGHz / LoRa — V4 (SX1262) --
 static const UkfeFn FN_SUBGHZ[] = {
-    {"Status-Ping 868", UkfeRfCmdStatus,      0, false},
-    {"LoRa TX",         UkfeRfCmdLoraTx,      0, false},
-    {"LoRa Scan",       UkfeRfCmdLoraScan,    0, false},
-    {"SubGHz Scan",     UkfeRfCmdSubghzScan,  0, false},
-    {"SubGHz Replay",   UkfeRfCmdSubghzReplay,0, false},
-    {"RollForge",       UkfeRfCmdRollForge,   0, false},
-    {"ProtoPirate",     UkfeRfCmdProtoPirate, 0, false},
-    {"Jammer",          UkfeRfCmdJammer,      0, true},
+    {"Status-Ping [alle]",  UkfeRfCmdStatus,      0, false},
+    {"LoRa TX [V4]",        UkfeRfCmdLoraTx,      0, false},
+    {"LoRa Scan [V4]",      UkfeRfCmdLoraScan,    0, false},
+    {"SubGHz Scan [V4]",    UkfeRfCmdSubghzScan,  0, false},
+    {"SubGHz Replay [V4]",  UkfeRfCmdSubghzReplay,0, false},
+    {"RollForge [V4]",      UkfeRfCmdRollForge,   0, false},
+    {"ProtoPirate [V4]",    UkfeRfCmdProtoPirate, 0, false},
+    {"Jammer [V4]",         UkfeRfCmdJammer,      0, true},
 };
 
-// -- GPS --
+// -- GPS — V4 (primaer + sekundaer) --
 static const UkfeFn FN_GPS[] = {
-    {"GPS-Status",   UkfeRfCmdGpsStatus,   0, false},
-    {"GPS-Wardrive", UkfeRfCmdGpsWardrive, 0, false},
+    {"GPS-Status [V4]",   UkfeRfCmdGpsStatus,   0, false},
+    {"GPS-Wardrive [V4]", UkfeRfCmdGpsWardrive, 0, false},
 };
 
-// -- USB / HID (S3-Satelliten) --
+// -- USB / HID (BadUSB) — HID-Geraet (V4/V3) --
 static const UkfeFn FN_HID[] = {
-    {"Marker",     UkfeRfCmdHidPayload, 0, true},
-    {"Notepad",    UkfeRfCmdHidPayload, 1, true},
-    {"PowerShell", UkfeRfCmdHidPayload, 2, true},
-    {"CMD Marker", UkfeRfCmdHidPayload, 3, true},
-    {"Lock",       UkfeRfCmdHidPayload, 4, true},
+    {"Marker [HID]",     UkfeRfCmdHidPayload, 0, true},
+    {"Notepad [HID]",    UkfeRfCmdHidPayload, 1, true},
+    {"PowerShell [HID]", UkfeRfCmdHidPayload, 2, true},
+    {"CMD Marker [HID]", UkfeRfCmdHidPayload, 3, true},
+    {"Lock [HID]",       UkfeRfCmdHidPayload, 4, true},
 };
 
 // -- System --
