@@ -8,3 +8,6 @@ __pycache__/
 .vscode/
 *.fap
 ufbt_build.log
+
+# Lokales Pairing-Secret (nicht committen)
+secret.h

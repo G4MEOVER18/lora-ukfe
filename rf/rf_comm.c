@@ -11,10 +11,8 @@
 #define RF_SYM_MAX   2048u
 
 // ---- Shared Secret: MUSS mit der Heltec-Seite uebereinstimmen (out-of-band pairen!) ----
-static const uint8_t RF_SECRET[UKFE_RF_SECRET_LEN] = {
-    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,   // "G4MEOVER"
-    0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,   // Pairing-Bytes (ersetzen!)
-};
+#include "secret.h"
+static const uint8_t RF_SECRET[UKFE_RF_SECRET_LEN] = UKFE_RF_SECRET_INIT;
 
 typedef struct {
     const SubGhzDevice* device;
