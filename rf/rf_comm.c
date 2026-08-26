@@ -85,6 +85,14 @@ size_t rf_comm_build_frame(const UkfeRfMessage* in, uint8_t* out, size_t cap) {
     return ukfe_rf_build_frame(RF_SECRET, &msg, out, cap);
 }
 
+// Empfang: verifiziert MAC+CRC mit dem gemeinsamen Secret. last_counter=NULL ->
+// kein Replay-Check auf der Flipper-Seite (Responses des Hubs kommen mit eigenem
+// Counter-Raum). Secret bleibt in diesem Modul gekapselt.
+bool rf_comm_parse_frame(const uint8_t* in, size_t len, UkfeRfMessage* out) {
+    if(!in || !out) return false;
+    return ukfe_rf_parse_frame(RF_SECRET, in, len, out, NULL);
+}
+
 bool rf_comm_send(const UkfeRfMessage* in) {
     if(!s_rf.inited || !in) return false;
 

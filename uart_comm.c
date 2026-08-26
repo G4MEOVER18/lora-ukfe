@@ -6,8 +6,6 @@
 
 // ─── RX-Thread ────────────────────────────────────────────────────────────────
 
-#define RX_LINE_MAX 256
-
 static void uart_rx_callback(FuriHalSerialHandle* handle, FuriHalSerialRxEvent event, void* ctx) {
     UNUSED(handle);
     LораUkfeApp* app = ctx;
@@ -17,24 +15,85 @@ static void uart_rx_callback(FuriHalSerialHandle* handle, FuriHalSerialRxEvent e
     }
 }
 
+// Verarbeitet einen validierten ukfe_rf-Response-Frame vom Hub/Satelliten.
+static void handle_rf_response(LораUkfeApp* app, const UkfeRfMessage* m) {
+    char line[96];
+    switch(m->cmd) {
+    case UkfeRfRespAck:
+        snprintf(line, sizeof(line), "[ACK] cmd=0x%02X res=%u",
+            m->arg_len > 0 ? m->args[0] : 0, m->arg_len > 1 ? m->args[1] : 0);
+        notification_message(app->notifications, &sequence_blink_green_100);
+        break;
+    case UkfeRfRespStatus: {
+        uint8_t mode = m->arg_len > 0 ? m->args[0] : 0;
+        uint8_t busy = m->arg_len > 1 ? m->args[1] : 0;
+        uint8_t batt = m->arg_len > 2 ? m->args[2] : 0;
+        int8_t  rssi = (int8_t)(m->arg_len > 3 ? m->args[3] : 0);
+        app->status.bat_pct = batt;
+        app->status.lora_rssi = rssi;
+        strlcpy(app->status.state, busy ? "running" : "idle", sizeof(app->status.state));
+        snprintf(line, sizeof(line), "[STATUS] %s bat=%u%% rssi=%d mode=%u",
+            busy ? "running" : "idle", batt, rssi, mode);
+        view_dispatcher_send_custom_event(app->view_dispatcher, 0x10);
+        break;
+    }
+    case UkfeRfRespRelayed:
+        snprintf(line, sizeof(line), "[RELAY] cmd=0x%02X ok=%u",
+            m->arg_len > 0 ? m->args[0] : 0, m->arg_len > 1 ? m->args[1] : 0);
+        break;
+    default:
+        snprintf(line, sizeof(line), "[RX] cmd=0x%02X ctr=%lu alen=%u",
+            m->cmd, (unsigned long)m->counter, m->arg_len);
+        break;
+    }
+    ukfe_log_append(app, line);
+}
+
+// Byte-Stream-Frame-Scanner (identisch zum V4-Hub): sucht LEN|MAGIC|VER, wartet auf
+// den Rest, verifiziert (MAC+CRC) und dispatcht. Ersetzt den alten JSON-Zeilenparser
+// -> Flipper und Hub sprechen jetzt auf beiden Richtungen dasselbe Frame-Format.
 static int32_t rx_thread_fn(void* ctx) {
     LораUkfeApp* app = ctx;
-    char line[RX_LINE_MAX];
-    size_t pos = 0;
+    static uint8_t buf[UKFE_RF_MAX_FRAME * 2];
+    size_t len = 0;
 
     while(true) {
         uint8_t byte;
         size_t received = furi_stream_buffer_receive(app->rx_stream, &byte, 1, FuriWaitForever);
         if(received == 0) continue;
+        if(len < sizeof(buf)) buf[len++] = byte;
 
-        if(byte == '\n') {
-            line[pos] = '\0';
-            if(pos > 1) {
-                ukfe_json_handle(app, line);
+        // Solange ein vollstaendiger Frame im Puffer liegt, verarbeiten.
+        while(len >= UKFE_RF_HDR_OVERHEAD) {
+            size_t i = 0;
+            bool found = false;
+            for(; i + 2 < len; i++) {
+                size_t rl = (size_t)buf[i] + 1;
+                if(rl < UKFE_RF_HDR_OVERHEAD || rl > UKFE_RF_MAX_FRAME) continue;
+                if(buf[i + 1] != UKFE_RF_MAGIC || buf[i + 2] != UKFE_RF_VERSION) continue;
+                found = true;
+                break;
             }
-            pos = 0;
-        } else if(byte != '\r' && pos < RX_LINE_MAX - 1) {
-            line[pos++] = (char)byte;
+            if(!found) {
+                // Kein Frame-Start -> nur die letzten 2 Bytes als moeglichen Anfang behalten.
+                if(len > 2) {
+                    memmove(buf, buf + (len - 2), 2);
+                    len = 2;
+                }
+                break;
+            }
+            if(i > 0) {
+                memmove(buf, buf + i, len - i);
+                len -= i;
+            }
+            size_t rl = (size_t)buf[0] + 1;
+            if(len < rl) break; // Rest des Frames noch nicht da
+            UkfeRfMessage msg;
+            if(rf_comm_parse_frame(buf, rl, &msg)) {
+                handle_rf_response(app, &msg);
+            }
+            memmove(buf, buf + rl, len - rl);
+            len -= rl;
         }
     }
     return 0;
