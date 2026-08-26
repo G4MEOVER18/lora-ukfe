@@ -56,6 +56,9 @@ typedef enum {
     UkfeRfCmdSourApple   = 0x32,
     UkfeRfCmdBleSniff    = 0x33,
 
+    // -- Drohnen / Remote-ID (0x2B) — V3-Satellit --
+    UkfeRfCmdRidScan     = 0x2B,  // Drohnen-Remote-ID (ASTM F3411 WiFi-Beacon OUI FA:0B:BC) sniffen
+
     // -- GPS (0x4x) --
     UkfeRfCmdGpsStatus   = 0x40,
     UkfeRfCmdGpsWardrive = 0x41,
@@ -63,12 +66,17 @@ typedef enum {
     // -- USB / HID (0x5x) — S3-Satelliten --
     UkfeRfCmdHidPayload  = 0x50,  // args: uint8 idx (Marker/Notepad/PS/CMD/Lock)
     UkfeRfCmdHidDucky    = 0x51,  // args: uint8 script_id
+    UkfeRfCmdHidStream   = 0x52,  // args: uint8 flags(b0=first,b1=last), rest=DuckyScript-Chunk
+
+    // -- LoRaWAN / Weitverkehr (0x6x) --
+    UkfeRfCmdLoraJoin    = 0x60,  // On-Demand LoRaWAN-OTAA-Join (TTN) + Status-Uplink
 } UkfeRfCmd;
 
 // ---- Responses (Heltec -> Flipper), Bit7 gesetzt ----
 typedef enum {
     UkfeRfRespAck        = 0x80,  // args: uint8 orig_cmd, uint8 result(0=ok)
     UkfeRfRespStatus     = 0x81,  // args: uint8 mode, busy, batt, rssi
+    UkfeRfRespRelayed    = 0x82,  // args: uint8 orig_cmd, uint8 relay_ok — Hub/Relay-Empfangsquittung
     UkfeRfRespPayload    = 0x84,  // args: uint8 idx, char name[]
     UkfeRfRespScanHit    = 0x90,  // args: uint32 freq_or_ch, uint8 rssi
 } UkfeRfResp;
