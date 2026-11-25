@@ -1,5 +1,7 @@
 # lora_ukfe — USB Army Penetrator Flipper Edition
 
+[![CI](https://github.com/G4MEOVER18/lora-ukfe/actions/workflows/flipper-fap.yml/badge.svg)](https://github.com/G4MEOVER18/lora-ukfe/actions/workflows/flipper-fap.yml)
+
 > Flipper Zero FAP · Remote-Steuerung für den G4MEOVER Agent via UART/JSON
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
